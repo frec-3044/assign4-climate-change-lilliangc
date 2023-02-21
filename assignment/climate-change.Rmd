@@ -1,0 +1,152 @@
+---
+title: 'Climate Change Module'
+author: 'Quinn Thomas'
+output:
+  github_document: default
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+```{r message=FALSE}
+library(tidyverse)
+```
+
+## Warm-up: Examining CO2 trends in R
+
+- Example from <http://climate.nasa.gov/vital-signs/carbon-dioxide/>
+- Raw data from <https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt>
+
+In 1958, Dr. Charles David Keeling (1928-2005), who was a scientist at Scripps Institute of Oceanography, began collecting data on atmospheric CO2 concentration at the Mauna Loa Observatory located in Hawaii. This dataset is what allowed us to understand the degree to which climate change is human-caused through our burning of fossil fuels and release of CO2 into the atmosphere. Due to his scientific achievements, Dr. Keeling was awarded the National Medal of Science by President George W. Bush in 2002. This is the highest award for lifetime scientific achievement that can be granted in the U.S. Today, you get to analyze this same dataset, except that you have more data that was available to Dr. Keeling and his colleagues, because your dataset extends up to current time.
+
+```{r message=FALSE}
+
+co2 <- 
+read_table("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt", 
+                  comment="#",
+                  col_names = c("year", "month", "decimal_date", "monthly_average",
+                                "deseasonalized", "days", "sd_days","unc_month_mean"),
+                  na = c("-1", "-99.99"))
+co2
+```
+
+
+```{r}
+ggplot(co2, aes(x = decimal_date, y = monthly_average)) + 
+  geom_line() + 
+  geom_line(aes(y = deseasonalized), color = "blue") +
+  labs(x = "Year", y = "CO2 concentration (ppm)")
+```
+
+**Question 1:**
+
+Describe the overall trend in the CO2 data.
+
+**Answer 1:**
+
+**Question 2:**
+
+How does CO2 vary within a year?  What month is it at max?  Min?  What might explain this sub-annual pattern?
+
+**Answer 2:**
+
+
+
+## Global Temperature Data
+
+Current climate change is affecting many aspects of the environment, with socio-economic consequences. For example, a warmer climate can allow new diseases to be introduced and persist (e.g. West Nile became established in the United States after an unusually warm winter allowed the mosquitoes that carry the virus to survive and spread). We are concerned not only with the actual temperature, but also with the rate that the temperature changes. Very rapid changes make it more likely that species cannot adapt and will go extinct. 
+
+Each of the most recent years have the warmest on record.  In this section we will analyze global mean temperature data.
+
+Data from: <http://climate.nasa.gov/vital-signs/global-temperature>
+
+**Question 3:**
+
+Describe the data set to the best of your ability given the documentation provided. Describe what kind of column each data contains and what units it is measured in. Then address our three key questions in understanding this data:
+
+- How are the measurements made? What is the associated measurement uncertainty?
+- What is the spatial resolution of the data? What is the temporal resolution of the data?
+- Are there missing values? How should they be handled?
+
+**Answer 3:**
+
+
+**Question 4:**
+
+Construct the necessary R code to import and prepare for plotting the following data set: <http://climate.nasa.gov/system/internal_resources/details/original/647_Global_Temperature_Data_File.txt>
+
+**Answer 4:**
+
+**Question 5:**
+
+Plot the trend in global mean temperatures over time.  Describe what you see in the plot and how you interpret the patterns you observe.
+
+**Answer 5:**
+
+## Evaluating the evidence for a "Pause" in warming?
+
+The [2013 IPCC Report](https://www.ipcc.ch/pdf/assessment-report/ar5/wg1/WG1AR5_SummaryVolume_FINAL.pdf) included a tentative observation of a "much smaller increasing trend" in global mean temperatures since 1998 than was observed previously.  This led to much discussion in the media about the existence of a "Pause" or "Hiatus" in global warming rates, as well as much research looking into where the extra heat could have gone.  (Examples discussing this question include articles in [The Guardian](http://www.theguardian.com/environment/2015/jun/04/global-warming-hasnt-paused-study-finds), [BBC News](http://www.bbc.com/news/science-environment-28870988), and [Wikipedia](https://en.wikipedia.org/wiki/Global_warming_hiatus)). 
+
+You will use rolling averages to help you explore the evidence for a pause. You have not been provided instructions for calculating rolling means so a learning objective of this question is to practicing finding the solution.
+
+**Question 6:**
+
+Use a search engine (e.g., Google), to search for how to calculate a rolling average in R. What search term did you use and what website did you end up using?  Why did you select this particular website?
+
+**Answer 6:**
+
+**Question 7:**
+
+- What is the meaning of "5 year average" vs "annual average"?
+- Create a data frame from the annual data with three new columns: 5-year running averages, 10-year running averages, and 20-year running averages.
+
+**Answer 7:**
+
+**Question 8:**
+
+Plot the different averages on the same plot and describe what differences you see and why.  
+
+**Answer 8:**
+
+**Question 9:**
+
+By examining the data here, what evidence do you find or not find for such a pause? 
+
+**Answer 9:**
+
+## Longer term trends in CO2 Records
+
+When analyzing Earth’s climate, it is important to remember that Earth is 4.54 billion years old. Our analyses so far have only looked at recent history. How can we compare the recent data to pre-historic time? Are the current rates of change similar or different than those the earth has experienced in the past? To explore this, we can use data taken from ice cores that were drilled at the poles. 
+
+Hundreds of ice cores have been extracted from polar ice because they contain valuable data on atmospheric chemistry over pre-historic time. These valuable data exist in tiny air bubbles that are trapped in the ice. These air bubbles contain the same gases in the same ratios as the atmosphere at the time when the ice formed. The data you will be analyzing today are from ice cores extracted from the Vostok research station in Antarctica. As you have probably assumed, the depth of the ice core is related to how old the ice is; deep ice is older. There are two other variables that you will be analyzing from the ice cores.  You will analyze CO2 concentration, which has been measured from air bubbles trapped in the ice. We can use these data to see what rates of change were like during this pre-historic period, during which human activity has been minimal. 
+
+[Ice core data](https://cdiac.ess-dive.lbl.gov/trends/co2/ice_core_co2.html):
+
+Vostok Core, back to 400,000 yrs before present day 
+
+- Description of data set: <https://cdiac.ess-dive.lbl.gov/trends/co2/vostok.html>
+- Data source: <https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2>
+
+**Question 10:**
+
+The broad question is: how do recent atmospheric CO2 levels compare to historical levels?
+
+Your answers to this Question is going to be a mix of code chunks and text.
+
+- Describe the data set: what are the columns and units? Where do the numbers come from? 
+- What is resolution of the data? Interpretation of missing values?  
+- Read in and prepare data for analysis.   
+- Reverse the ordering to create a chronological record.    
+- Plot data.  
+- Consider various smoothing windowed averages of the data using in the plots.   
+- Combine this time series with the Mauna Loa data (the Warm-up exercise).  Hint:  make sure both datasets have the same columns in the same order and use [`bind_rows`](https://dplyr.tidyverse.org/reference/bind_rows.html).   
+- Plot the combined data.    
+- Describe your conclusions to the question "how do recent atmospheric CO2 levels compare to historical levels?" using your plot as supporting evidence.   
+
+**Answer 10:**
+
+# Knitting and committing
+
+Remember to Knit your document as a `github_document` and comment+push to GitHub your code, knitted document, and any files in the `figure-gfm` subdirectory that was created when you knitted the document.
+
+
