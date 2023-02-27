@@ -96,13 +96,39 @@ Describe the data set to the best of your ability given the documentation provid
 
 Construct the necessary R code to import and prepare for plotting the following data set: <http://climate.nasa.gov/system/internal_resources/details/original/647_Global_Temperature_Data_File.txt>
 
-**Answer 4:**
+**Answer 4: See code block below. **
+
+```{r}
+#read_table
+global_temp <- read_table("http://climate.nasa.gov/system/internal_resources/details/original/647_Global_Temperature_Data_File.txt", skip = 5, col_names = c("year", "gst_change", "lowess"))
+
+```
 
 **Question 5:**
 
 Plot the trend in global mean temperatures over time.  Describe what you see in the plot and how you interpret the patterns you observe.
 
-**Answer 5:**
+**Answer 5: When the plot is examined, it can be seen that average global surface temperature change is oscillating back and forth between small time frames, but typically increasing in overall trend. The oscillations appear to be constant around up until 1920 when the average change increases. The changes seem to level out until 1980 before rapidly increasing until 2021. I believe the oscillations may be due to the changing seasons or other factors. Either way, it is hard to analyze the overall trend, so the smoothed average for 5 years was plotted along the originial data. This way, the small decrease in the beginning and overall increase in the years following can be seen more clearly. **
+
+```{r}
+#just global surface temperature change
+ggplot(global_temp, aes(year, gst_change)) + 
+  geom_line() + 
+  theme_bw() +
+  labs(x = "Year", 
+       y = "Change in Global Surface Temperature (C)", 
+       title = "Global Mean Temperature Trend")
+
+#global surface temperature change with smoothed average
+global_temp |> ggplot(aes(year, gst_change)) + 
+  geom_point() + 
+  geom_line(aes(year, lowess)) + 
+  theme_bw() +
+  labs(x = "Year", 
+       y = "Change in Global Surface Temperature (C)", 
+       title = "Global Mean Temperature Trend")
+
+```
 
 ## Evaluating the evidence for a "Pause" in warming?
 
@@ -114,20 +140,50 @@ You will use rolling averages to help you explore the evidence for a pause. You 
 
 Use a search engine (e.g., Google), to search for how to calculate a rolling average in R. What search term did you use and what website did you end up using?  Why did you select this particular website?
 
-**Answer 6:**
+**Answer 6: I searched "rolling averages in r" because I hoped to get a website that would first tell me what they are and their purpose, and then tell me how to calculate them in R. After searching this, I can across this site (https://www.statology.org/rolling-average-in-r/) titled "How to Calculate a Rolling Average in R (With Example)" which I chose because I could tell that it included the definition, how to calculate rolling averages, and had specific R codes I could use as a reference. **
 
 **Question 7:**
 
 - What is the meaning of "5 year average" vs "annual average"?
 - Create a data frame from the annual data with three new columns: 5-year running averages, 10-year running averages, and 20-year running averages.
 
-**Answer 7:**
+**Answer 7: Annual average refers to taking the mean of the data collected within one year. A 5-yr average refers to taking the mean of the data collected within 5 years, typically the current year and the 4 years before, but there are other ways to stagger the average as well. **
+
+```{r}
+#installing libraries
+library(dplyr)
+#install.packages("zoo")
+library(zoo)
+
+#adding rolling averages
+## 5 years
+global_temp <- global_temp |> mutate(rolling_ave5 = rollmean(gst_change, k = 5, fill = NA, align = "right"))
+## 10 years
+global_temp <- global_temp |> mutate(rolling_ave10 = rollmean(gst_change, k = 10, fill = NA, align = "right"))
+## 20 years
+global_temp <- global_temp |> mutate(rolling_ave20 = rollmean(gst_change, k = 20, fill = NA, align = "right"))
+
+```
 
 **Question 8:**
 
 Plot the different averages on the same plot and describe what differences you see and why.  
 
-**Answer 8:**
+**Answer 8: When the plot is examined, the three rolling average trends can be compared to the original data. As the rolling average time period increases, a clearer trend can be seen of the global surface temperature changes increasing. While "the pause" scientists were talking about could be seen on the original graph (as a seemingly flat portion of the graph), it can not be seen on the 20 year rolling average, and is less noticeable on the other rolling average graphs as well. This is because, when the data is averaged over a longer period of time, volitile data is less likely to affect the plot and trends can be viewed more accurately. **
+
+```{r}
+#plotting regular & rolling averages
+global_temp |> ggplot(aes(year, gst_change)) + 
+  geom_point() +
+  geom_line(aes(year, rolling_ave5), color = "red") +
+  geom_line(aes(year, rolling_ave10), color = "orange") +
+  geom_line(aes(year, rolling_ave20), color = "blue") +
+  theme_bw() +
+  labs(x = "Year", 
+       y = "Change in Global Surface Temperature (C)", 
+       title = "Global Mean Temperature Trend")
+
+```
 
 **Question 9:**
 
