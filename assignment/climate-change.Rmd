@@ -27,7 +27,7 @@ read_table("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt",
                   col_names = c("year", "month", "decimal_date", "monthly_average",
                                 "deseasonalized", "days", "sd_days","unc_month_mean"),
                   na = c("-1", "-99.99"))
-co2
+
 ```
 
 
@@ -35,22 +35,43 @@ co2
 ggplot(co2, aes(x = decimal_date, y = monthly_average)) + 
   geom_line() + 
   geom_line(aes(y = deseasonalized), color = "blue") +
-  labs(x = "Year", y = "CO2 concentration (ppm)")
+  labs(x = "Year", y = "CO2 concentration (ppm)") +
+  theme_bw()
 ```
 
 **Question 1:**
 
 Describe the overall trend in the CO2 data.
 
-**Answer 1:**
+**Answer 1: when plotting the monthly average CO2 concentrations (black solid line), the overall direction of CO2 concentrations is increasing; however, within each year, there are oscillations present, most likely representing seasons. Since seasons have widely different conditions (temperature, precipitation, light duration, etc), the oscillations seen are most likely due to these characteristics. When the data is smoothed out, by averaging the seasonal data for each year so the data is "deseasonalized", a clear linear increase can be seen (solid blue line) further indicating a positive direct relationship between year and CO2 concentrations. **
 
 **Question 2:**
 
 How does CO2 vary within a year?  What month is it at max?  Min?  What might explain this sub-annual pattern?
 
-**Answer 2:**
+**Answer 2: In order to visualize the CO2 variations within a singular year, the CO2 concentrations of the years 2014 to 2022 were plotted and separated by year. All 9 plots show a very similiar trend/shape with the CO2 concentration increasing until around the first quarter of the year, where the concentration peaks, and then decreasing at relatively the same rate until the 3rd quarter of the year occurs, before finally increasing to a little more than the CO2 concentration as the beginning of the year. When examining the max and min CO2 concentrations of the whole data, May and June had the extreme maximum CO2 concentration while October had the extreme minimum. When examining the average of monthly averages of all years, May had the highest average with the surrounding months being second and third highest. **
 
+```{r}
+#CO2 variation within a year between 2014 and 2023
+co2 |> filter(year >= 2014 & year < 2023) |> 
+  ggplot(aes(x = decimal_date, y = monthly_average)) + 
+  geom_line() +
+  theme_bw() +
+  labs(x = "Year", 
+       y = "CO2 concentration (ppm)",
+       title= "CO2 concentration (ppm) per Year from 2014 - 2022") +
+  facet_wrap(~year, scales = "free") + 
+  theme(axis.text.x = element_text(color = "grey20",
+                                   angle=35, 
+                                   vjust=0.5, 
+                                   hjust=0.5))
 
+#Month Max & Min (group_by)
+co2 |>  group_by(month) |>  summarize(maxco2 = max(monthly_average, na.rm = TRUE))
+co2 |>  group_by(month) |>  summarize(minco2 = min(monthly_average, na.rm = TRUE))
+co2 |>  group_by(month) |>  summarize(meanco2 = mean(monthly_average, na.rm = TRUE))
+
+```
 
 ## Global Temperature Data
 
@@ -68,7 +89,7 @@ Describe the data set to the best of your ability given the documentation provid
 - What is the spatial resolution of the data? What is the temporal resolution of the data?
 - Are there missing values? How should they be handled?
 
-**Answer 3:**
+**Answer 3: This data set contains the change in global land-ocean temperature that occurred each year from 1880 to 2021, which were provided by NASA's Goddard Institute for Space Studies (GISS). There are two columns that contain change in temperature data with one being the actual average change in global temperature of the year and the other being the smoothed average change in global temperature of the year by 5 years. There is no stated uncertainty; however, NASA's analyses typically matched the independent studies by two other organizations: the Climatic Research Unit and the National Oceanic and Atmospheric Administration (NOAA). The spatial resolution came from satellite data, I assume since NASA was the organization that collected this data, and the temporal resolution was each year. It also does not appear that there are any missing values in this dataset. **
 
 
 **Question 4:**
