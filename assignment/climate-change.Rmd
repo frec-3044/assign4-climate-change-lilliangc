@@ -221,7 +221,9 @@ Your answers to this Question is going to be a mix of code chunks and text.
 - Plot the combined data.    
 - Describe your conclusions to the question "how do recent atmospheric CO2 levels compare to historical levels?" using your plot as supporting evidence.   
 
-**Answer 10:**
+**Answer 10: To answer the overall question, the recent atmospheric CO2 levels are both much higher than historical levels and increasing at a faster rate as well. After analyzing the historical CO2 data by itself, it can be determined that the CO2 concentrations stayed within 180 and 300 ppmv. Furthermore, while the CO2 concentrations increased and decreased frequently, after smoothing the data it can be seen that the CO2 concentration stayed relatively in the same range, meaning the oscillations of the CO2 concentrations as a whole (aka the rate of the CO2 concentration change) did not increase or decrease much. In fact, when plotting the linear regression line, the overall trend of the data is decreasing by only a factor of 5.2e-05. This analysis must be taken with uncertainty since the R2 value is 0.03 though.             After analyzing the recent CO2 data by itself, it can be determined that all the CO2 concentration readings were higher than all of the historical CO2 data, with the CO2 concentrations within the range of 314 to 420 ppmv. The rate of CO2 concentration change in the recent data is also visibly higher than the historical rate. When plotting the linear regression line, the line is both positive and the R2 value is 0.98, which is extremely high, especially in environmental data.             The side by side comparison of the two time periods can be seen on the non-faceted "CO2 concentration levels [Historical period to Recent]" plot where the historical and recent data are differentiated by color. The difference in magnitude of CO2 concentration can be clearly seen in this plot, but the rate is a bit harder to analyze due to the broadness of the x-axis. In the faceted "CO2 concentration levels [Historical period to Recent]" plot, the rates can be visually compared better. **
+
+Furthur analysis and explanations are below in the text and code blocks. 
 
 #Describe the data set: what are the columns and units? Where do the numbers come from? 
 Comments: The columns in this data set are depth (in meters of where the ice was taken from), ice age (in years before present: where the age of the ice is X number of years (# in column) before 1950 years old), air mean age (same concept, but with the air inside the ice (which includes the CO2 data)), and the CO2 concentration (in ppm). 
@@ -295,17 +297,19 @@ rev_co2 |> ggplot(aes(air_mean_age_yrBP, co2_conc_ppmv)) +
 
 # Combine this time series with the Mauna Loa data (the Warm-up exercise).  Hint:  make sure both datasets have the same columns in the same order and use [`bind_rows`](https://dplyr.tidyverse.org/reference/bind_rows.html).
 ```{r}
-#calculating year from 1950 for years after 1950 (mauna data)
-co2_early <- co2 |> select(year, deseasonalized)
-co2_early <- co2_early |> mutate(year_from_1950 = year - 1950)
-co2_early <- co2_early |> rename(co2_conc = "deseasonalized")
-co2_early <- co2_early |> select(year_from_1950, co2_conc)
-
 #calculating year from 1950 for years before 1950 (ice core data)
-co2_later <- co2_past |> select(air_mean_age_yrBP, co2_conc_ppmv)
-co2_later <- co2_later |> mutate(year_from_1950 = 1950 - air_mean_age_yrBP)
-co2_later <- co2_later |> rename(co2_conc = "co2_conc_ppmv")
+co2_early <- co2_past |> select(air_mean_age_yrBP, co2_conc_ppmv)
+co2_early <- co2_early |> mutate(year_from_1950 = 1950 - air_mean_age_yrBP)
+co2_early <- co2_early |> rename(co2_conc = "co2_conc_ppmv")
+co2_early <- co2_early |> select(year_from_1950, co2_conc)
+co2_early <- co2_early |> mutate(id_label = "Historical")
+
+#calculating year from 1950 for years after 1950 (mauna data)
+co2_later <- co2 |> select(year, deseasonalized)
+co2_later <- co2_later |> mutate(year_from_1950 = year - 1950)
+co2_later <- co2_later |> rename(co2_conc = "deseasonalized")
 co2_later <- co2_later |> select(year_from_1950, co2_conc)
+co2_later <- co2_later |> mutate(id_label = "Recent")
 
 #co2_combined
 co2_combined <- bind_rows(co2_early, co2_later, .id = "id")
@@ -314,14 +318,62 @@ co2_combined <- bind_rows(co2_early, co2_later, .id = "id")
 
 #Plot the combined data.
 ```{r}
+#installing library pathwork
+library(patchwork)
+
+#summary of fits
+co2_early_fit <- lm(formula = co2_conc ~ year_from_1950, data = co2_early)
+summary(co2_early_fit)
+#intercept = 2.211e+02
+#slope = -5.261e-05
+#R2 = 0.03371
+
+co2_later_fit <- lm(formula = co2_conc ~ year_from_1950, data = co2_later)
+summary(co2_later_fit)
+#intercept = 2.929e+02
+#slope = 1.617
+#R2 = 0.981
+
+#individual plots with linear regression
+early_plot <- co2_early |> ggplot(aes(year_from_1950, co2_conc)) +
+  geom_point() +
+  geom_abline(intercept = co2_early_fit$coefficients[1], slope = co2_early_fit$coefficients[2]) +
+  labs(x = "Year from 1950", 
+       y = "CO2 Concentration (ppmv)", 
+       title = "Historical CO2 Concentrations") +
+  theme_bw()
+  
+later_plot <- co2_later |> ggplot(aes(year_from_1950, co2_conc)) +
+  geom_point() +
+  geom_abline(intercept = co2_later_fit$coefficients[1], slope = co2_later_fit$coefficients[2]) +
+  labs(x = "Year from 1950", 
+       y = "CO2 Concentration (ppmv)", 
+       title = "Recent CO2 Concentrations") +
+  theme_bw()
+
+#combined plots with linear regression
+early_plot + later_plot
+
+#CO2 combined data set
+co2_combined |> ggplot(aes(year_from_1950, co2_conc, color = id)) + 
+  geom_line() +
+  theme_bw() +
+  labs(x = "Years from 1950", 
+       y = "CO2 Concentration (ppmv)", 
+       title = "CO2 concentration levels [Historical period to Recent]")
+
+### Hard to see the after 1950 values (just a vertical line)
+co2_combined |> ggplot(aes(year_from_1950, co2_conc)) + 
+  geom_line() +
+  theme_bw() +
+  facet_wrap(facets = vars(id_label), scales = "free") +
+  labs(x = "Years from 1950", 
+       y = "CO2 Concentration (ppmv)", 
+       title = "CO2 concentration levels [Historical period to Recent]")
+
+
 
 ```
-
-#Describe your conclusions to the question "how do recent atmospheric CO2 levels compare to historical levels?" using your plot as supporting evidence.
-```{r}
-
-```
-
 
 # Knitting and committing
 
