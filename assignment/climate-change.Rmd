@@ -169,7 +169,7 @@ global_temp <- global_temp |> mutate(rolling_ave20 = rollmean(gst_change, k = 20
 
 Plot the different averages on the same plot and describe what differences you see and why.  
 
-**Answer 8: When the plot is examined, the three rolling average trends can be compared to the original data. As the rolling average time period increases, a clearer trend can be seen of the global surface temperature changes increasing. While "the pause" scientists were talking about could be seen on the original graph (as a seemingly flat portion of the graph), it can not be seen on the 20 year rolling average, and is less noticeable on the other rolling average graphs as well. This is because, when the data is averaged over a longer period of time, volitile data is less likely to affect the plot and trends can be viewed more accurately. **
+**Answer 8: When the plot is examined, the three rolling average trends can be compared to the original data. As the rolling average time period increases, a clearer trend can be seen of the global surface temperature changes increasing. This is because as the average is taken over a longer period of time, extreme values or volatile values will be smoothed over and less noticeable in plots, therefore resulting in a clearer analysis. **
 
 ```{r}
 #plotting regular & rolling averages
@@ -189,7 +189,7 @@ global_temp |> ggplot(aes(year, gst_change)) +
 
 By examining the data here, what evidence do you find or not find for such a pause? 
 
-**Answer 9:**
+**Answer 9: While "the pause" scientists were talking about could be seen on the original graph (as a seemingly flat portion of the graph), it can not be seen on the 20 year rolling average, and is less noticeable on the other rolling average graphs as well. This is because, when the data is averaged over a longer period of time, volatile data is less likely to affect the plot and trends can be viewed more accurately. **
 
 ## Longer term trends in CO2 Records
 
@@ -221,6 +221,65 @@ Your answers to this Question is going to be a mix of code chunks and text.
 - Describe your conclusions to the question "how do recent atmospheric CO2 levels compare to historical levels?" using your plot as supporting evidence.   
 
 **Answer 10:**
+
+#Describe the data set: what are the columns and units? Where do the numbers come from? 
+Comments:
+
+#What is resolution of the data? Interpretation of missing values? 
+Comments: 
+
+#Read in and prepare data for analysis.   
+```{r}
+co2_past <- read_table("https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2", skip = 20, col_names = c("depth_m", "ice_age_yrBP", "air_mean_age_yrBP", "co2_conc_ppmv"))
+
+```
+
+#Reverse the ordering to create a chronological record.
+```{r}
+
+```
+
+#Plot data
+```{r}
+
+```
+
+#Consider various smoothing windowed averages of the data using in the plots
+```{r}
+
+```
+
+
+# Combine this time series with the Mauna Loa data (the Warm-up exercise).  Hint:  make sure both datasets have the same columns in the same order and use [`bind_rows`](https://dplyr.tidyverse.org/reference/bind_rows.html).
+```{r}
+#calculating year from 1950 for years after 1950 (mauna data)
+co2_early <- co2 |> select(year, deseasonalized)
+co2_early <- co2_early |> mutate(year_from_1950 = year - 1950)
+co2_early <- co2_early |> rename(co2_conc = "deseasonalized")
+co2_early <- co2_early |> select(year_from_1950, co2_conc)
+
+#calculating year from 1950 for years before 1950 (ice core data)
+co2_later <- co2_past |> select(air_mean_age_yrBP, co2_conc_ppmv)
+co2_later <- co2_later |> mutate(year_from_1950 = 1950 - air_mean_age_yrBP)
+co2_later <- co2_later |> rename(co2_conc = "co2_conc_ppmv")
+co2_later <- co2_later |> select(year_from_1950, co2_conc)
+
+#co2_combined
+co2_combined <- bind_rows(co2_early, co2_later, .id = "id")
+
+
+```
+
+#Plot the combined data.
+```{r}
+
+```
+
+#Describe your conclusions to the question "how do recent atmospheric CO2 levels compare to historical levels?" using your plot as supporting evidence.
+```{r}
+
+```
+
 
 # Knitting and committing
 
