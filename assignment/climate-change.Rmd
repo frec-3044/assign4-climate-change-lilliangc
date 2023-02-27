@@ -35,7 +35,8 @@ read_table("https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt",
 ggplot(co2, aes(x = decimal_date, y = monthly_average)) + 
   geom_line() + 
   geom_line(aes(y = deseasonalized), color = "blue") +
-  labs(x = "Year", y = "CO2 concentration (ppm)") +
+  labs(x = "Year", 
+       y = "CO2 concentration (ppm)") +
   theme_bw()
 ```
 
@@ -223,32 +224,74 @@ Your answers to this Question is going to be a mix of code chunks and text.
 **Answer 10:**
 
 #Describe the data set: what are the columns and units? Where do the numbers come from? 
-Comments:
+Comments: The columns in this data set are depth (in meters of where the ice was taken from), ice age (in years before present: where the age of the ice is X number of years (# in column) before 1950 years old), air mean age (same concept, but with the air inside the ice (which includes the CO2 data)), and the CO2 concentration (in ppm). 
 
 #What is resolution of the data? Interpretation of missing values? 
-Comments: 
+Comments: There doesn't appear to be any missing data. The resolution is decently accurate? It came from the Arctic and Antarctic Research Institute who used advanced technology to dig into the ice layers of the ground, collect the ice, store it, and then examine the age and CO2 concentration within the ice.   
 
 #Read in and prepare data for analysis.   
 ```{r}
-co2_past <- read_table("https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2", skip = 20, col_names = c("depth_m", "ice_age_yrBP", "air_mean_age_yrBP", "co2_conc_ppmv"))
+co2_past <- read_table("https://cdiac.ess-dive.lbl.gov/ftp/trends/co2/vostok.icecore.co2", 
+                       skip = 20, 
+                       col_names = c("depth_m", "ice_age_yrBP", "air_mean_age_yrBP", "co2_conc_ppmv"))
 
 ```
 
 #Reverse the ordering to create a chronological record.
+Comments: The CO2 concentration present in the old ice appears to be drastically decreasing and then increasing more slowly to relatively the same concentration of CO2 as before, before drastically decreasing again. 
+
 ```{r}
+# transpose of data frame
+transposedco2 <- t(co2_past)
+ 
+# converting the result to data frame
+transposedco2 <- as.data.frame(transposedco2)
+ 
+# calculating reverse of data frame
+rev_co2 <- rev(transposedco2)
+ 
+# transpose of reverse data frame
+rev_co2 <- t(rev_co2)
+ 
+# converting the result to data frame
+rev_co2 <- as.data.frame(rev_co2)
 
 ```
 
 #Plot data
 ```{r}
+ggplot(rev_co2, aes(air_mean_age_yrBP, co2_conc_ppmv)) + 
+  geom_line() +
+  theme_bw() +
+  labs(x = "Air Mean Age (year BP)", 
+       y = "CO2 Concentration (ppmv)", 
+       title = "CO2 Concentration in Ice Before Present")
 
 ```
 
 #Consider various smoothing windowed averages of the data using in the plots
+Comments: Pretty constant in peaks and lows. Even with the 100 year smoothed window average, the line is relatively flat (w-shaped, but overall stays in the same range)
 ```{r}
+#adding rolling averages
+## 20 years
+rev_co2 <- rev_co2 |> mutate(rolling_ave20 = rollmean(co2_conc_ppmv, k = 20, fill = NA, alighn = "right"))
+## 50 years
+rev_co2 <- rev_co2 |> mutate(rolling_ave50 = rollmean(co2_conc_ppmv, k = 50, fill = NA, alighn = "right"))
+## 100 years
+rev_co2 <- rev_co2 |> mutate(rolling_ave100 = rollmean(co2_conc_ppmv, k = 100, fill = NA, alighn = "right"))
+
+#plotting smoothed averages
+rev_co2 |> ggplot(aes(air_mean_age_yrBP, co2_conc_ppmv)) + 
+  geom_point() +
+  geom_line(aes(air_mean_age_yrBP, rolling_ave20), color = "red") +
+  geom_line(aes(air_mean_age_yrBP, rolling_ave50), color = "orange") +
+  geom_line(aes(air_mean_age_yrBP, rolling_ave100), color = "blue") +
+  theme_bw() +
+  labs(x = "Air Mean Age (Before Present)", 
+       y = "CO 2 Concentration (ppmv)", 
+       title = "CO2 Concentration Present in Ice BP")
 
 ```
-
 
 # Combine this time series with the Mauna Loa data (the Warm-up exercise).  Hint:  make sure both datasets have the same columns in the same order and use [`bind_rows`](https://dplyr.tidyverse.org/reference/bind_rows.html).
 ```{r}
@@ -266,7 +309,6 @@ co2_later <- co2_later |> select(year_from_1950, co2_conc)
 
 #co2_combined
 co2_combined <- bind_rows(co2_early, co2_later, .id = "id")
-
 
 ```
 
